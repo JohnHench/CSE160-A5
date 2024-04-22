@@ -1,7 +1,7 @@
 import * as THREE from './lib/three.module.js';
-import { OrbitControls } from './lib/OrbitControls.js';
-import { OBJLoader } from './lib/OBJLoader.js';
-import { MTLLoader } from './lib/MTLLoader.js';
+import {OrbitControls} from './lib/OrbitControls.js';
+import {OBJLoader} from './lib/OBJLoader.js';
+import {MTLLoader} from './lib/MTLLoader.js';
 
 async function main() {
     // ----- SETUP -----
@@ -86,6 +86,12 @@ function initializeLight(scene) {
     light.target.position.set(0, 0, 0);
     scene.add(light);
     scene.add(light.target);
+
+    const aboveTreeLight = new THREE.DirectionalLight(color, intensity);
+    aboveTreeLight.position.set(0, 20, 0); 
+    aboveTreeLight.target.position.set(0, 0, 0);
+    scene.add(aboveTreeLight);
+    scene.add(aboveTreeLight.target);
 }
 
 function setupFloor(scene) {
@@ -111,6 +117,7 @@ function setupFloor(scene) {
     scene.add(groundMesh);
 }
 
+// Loads Tree model!
 async function loadModels(scene) {
     const materialLoader = new MTLLoader();
     const objLoader = new OBJLoader();
@@ -123,6 +130,11 @@ async function loadModels(scene) {
 
         for (const material of Object.values(mtl.materials)) {
             material.side = THREE.DoubleSide;
+            // Apply texture here
+            const textureLoader = new THREE.TextureLoader();
+            const texture = textureLoader.load('./abstract-alien-metal_albedo.png');
+            texture.encoding = THREE.sRGBEncoding;
+            material.map = texture;
         }
 
         objLoader.setMaterials(mtl);
