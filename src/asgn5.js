@@ -20,12 +20,12 @@ async function main() {
     function skyboxInit(scene) { 
         const loader = new THREE.CubeTextureLoader();
         const texture = loader.load([
-        '../background/right.png',  // Positive X (right)
-        '../background/left.png',   // Negative X (left)
-        '../background/top.png',   // Positive Y (top)
-        '../background/bottom.png',  // Negative Y (bottom)
-        '../background/front.png',  //  Positive Z (front)
-        '../background/back.png',    //  Negative Z (back)
+        '../Textures/SkyBox/right.png',  // Positive X (right)
+        '../Textures/SkyBox/left.png',   // Negative X (left)
+        '../Textures/SkyBox/top.png',   // Positive Y (top)
+        '../Textures/SkyBox/bottom.png',  // Negative Y (bottom)
+        '../Textures/SkyBox/front.png',  //  Positive Z (front)
+        '../Textures/SkyBox/back.png',    //  Negative Z (back)
         ]);
         scene.background = texture;
     }
