@@ -93,35 +93,40 @@ function initializeCamera(canvas) {
 }
 
 function initializeLight(scene) {
+    const red = 0xf23030;
     const color = 0xFFEAD0;
-    const intensity = 0.2;
-    const light = new THREE.DirectionalLight(color, intensity);
-    light.position.set(0, 10, 0);
-    light.target.position.set(0, 0, 0);
-    scene.add(light);
-    scene.add(light.target);
+    const intensity = .4;
 
-    const aboveTreeLight = new THREE.DirectionalLight(color, intensity);
-    aboveTreeLight.position.set(0, 20, 0); 
-    aboveTreeLight.target.position.set(0, 0, 0);
-    scene.add(aboveTreeLight);
-    scene.add(aboveTreeLight.target);
+    const spotlight = new THREE.SpotLight(0xff0000); // Red light
+    spotlight.distance = 100;
+    spotlight.angle = Math.PI / 16;
+    //spotlight.penumbra = 1;
+    spotlight.intensity = 1;
+    spotlight.position.set(0, 10, 0); // 10 meters above the origin
+    spotlight.target.position.set(0, 0, 0); // Point towards the origin
+    scene.add(spotlight);
+    scene.add(spotlight.target);
+    const spotlightHelper = new THREE.SpotLightHelper(spotlight);
+    scene.add(spotlightHelper);
 
-    // Create a HemisphereLight
-    const hemiLight = new THREE.HemisphereLight(color, intensity);
+    //Create a HemisphereLight
+    const hemiLight = new THREE.HemisphereLight(color, 0x404040, intensity);
     hemiLight.position.set(0, 10, 0);
     scene.add(hemiLight);
 
+    // Left Lamp Light
     const pointLight = new THREE.PointLight(0xebd234, 1); // color, intensity
-    pointLight.position.set(-12, 5.5, 0); // Set position of the light
+    pointLight.position.set(-2, 5.5, 11); // Set position of the light
     scene.add(pointLight); // Add the light to the scene
-    pointLight.shadow.mapSize.width = 1024; // Width of the shadow map
-    pointLight.shadow.mapSize.height = 1024; // Height of the shadow map
-    pointLight.shadow.camera.near = 0.5; // Near shadow camera distance
-    pointLight.shadow.camera.far = 50; // Far shadow camera distance
-
     const pointLightHelper = new THREE.PointLightHelper(pointLight, 1); // Light, size of the helper
     scene.add(pointLightHelper); // Add helper to the scene
+
+    // Right Lamp Light
+    const pointLight2 = new THREE.PointLight(0xebd234, 1); // color, intensity
+    pointLight2.position.set(2, 5.5, 11); // Set position of the light
+    scene.add(pointLight2); // Add the light to the scene
+    const pointLightHelper2 = new THREE.PointLightHelper(pointLight2, 1); // Light, size of the helper
+    scene.add(pointLightHelper2); // Add helper to the scene
 }
 
 function setupFloor(scene) {
@@ -175,7 +180,7 @@ async function loadModels(scene) {
 
         root.scale.set(0.3, 0.3, 0.3);
         root.rotation.y = 135;
-        root.position.set(4, 0.05, 0);
+        root.position.set(10, 0.05, 13);
         scene.add(root);
     } catch (error) {
         console.error('Error loading model:', error);
@@ -204,8 +209,37 @@ async function loadModels(scene) {
         });
 
         root.scale.set(0.3, 0.3, 0.3);
-        root.rotation.y = 135;
-        root.position.set(-12, 0.05, 0);
+        root.rotation.y = Math.PI / 2;
+        root.position.set(-2, 0.05, 11);
+        scene.add(root);
+    } catch (error) {
+        console.error('Error loading model:', error);
+    }
+
+    try {
+        const mtl = await new Promise((resolve, reject) => {
+            materialLoader.load('../models/Lamp/rv_lamp_post_3.mtl', resolve, undefined, reject);
+        });
+        mtl.preload();
+
+        // for (const material of Object.values(mtl.materials)) {
+        //     material.side = THREE.DoubleSide;
+        //     // Apply texture here
+        //     const textureLoader = new THREE.TextureLoader();
+        //     const texture = textureLoader.load('../Textures/abstract-alien-metal_albedo.png');
+        //     texture.encoding = THREE.sRGBEncoding;
+        //     material.map = texture;
+        // }
+
+        objLoader.setMaterials(mtl);
+
+        const root = await new Promise((resolve, reject) => {
+            objLoader.load('../models/Lamp/rv_lamp_post_3.obj', resolve, undefined, reject);
+        });
+
+        root.scale.set(0.3, 0.3, 0.3);
+        root.rotation.y = Math.PI / 2;
+        root.position.set(2, 0.05, 11);
         scene.add(root);
     } catch (error) {
         console.error('Error loading model:', error);
@@ -278,6 +312,20 @@ function createCubes(scene) {
     createCube(scene, -13, 1, -8, 6, "gray");
     // Grave
     createCube(scene, -13, -.9, -6, 7, "brown");
+
+    // Grave Head Stone Cylinder Part
+    createCube(scene, -10, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
+    // Grave Head Stone Cube Part
+    createCube(scene, -10, 1, -8, 6, "gray");
+    // Grave
+    createCube(scene, -10, -.9, -6, 7, "brown");
+
+    // Grave Head Stone Cylinder Part
+    createCube(scene, -7, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
+    // Grave Head Stone Cube Part
+    createCube(scene, -7, 1, -8, 6, "gray");
+    // Grave
+    createCube(scene, -7, -.9, -6, 7, "brown");
 
 
 
