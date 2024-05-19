@@ -4,11 +4,11 @@ import {OBJLoader} from '../lib/OBJLoader.js';
 import {MTLLoader} from '../lib/MTLLoader.js';
 
 async function main() {
-    // ----- SETUP -----
+    // Setup
     const canvas = document.querySelector('#c');
     const renderer = initializeRenderer(canvas);
 
-    // ----- CAMERA -----
+    // Camera
     const camera = initializeCamera(canvas);
 
     const controls = new OrbitControls(camera, canvas);
@@ -31,16 +31,16 @@ async function main() {
     }
 
     skyboxInit(scene);
-    // ----- FLOOR SETUP -----
+    // Floor Setup
     setupFloor(scene);
 
-    // ----- LOAD MODELS -----
+    // Load Models
     await loadModels(scene);
 
-    // ----- CUBES -----
+    // Cubes
     const cubes = createCubes(scene);
 
-    // ----- RESIZE RENDER -----
+    // Resize Render
     function resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement;
         const width = canvas.clientWidth;
@@ -52,7 +52,7 @@ async function main() {
         return needResize;
     }
 
-    // ----- RENDER -----
+    // Render
     function render(time) {
         time *= 0.001;
 
@@ -186,7 +186,7 @@ async function loadModels(scene) {
         console.error('Error loading model:', error);
     }
 
-
+    // Left Lamp
     try {
         const mtl = await new Promise((resolve, reject) => {
             materialLoader.load('../models/Lamp/rv_lamp_post_3.mtl', resolve, undefined, reject);
@@ -216,6 +216,7 @@ async function loadModels(scene) {
         console.error('Error loading model:', error);
     }
 
+    // Right Lamp
     try {
         const mtl = await new Promise((resolve, reject) => {
             materialLoader.load('../models/Lamp/rv_lamp_post_3.mtl', resolve, undefined, reject);
