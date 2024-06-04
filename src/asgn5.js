@@ -35,7 +35,7 @@ async function main() {
     setupFloor(scene);
 
     // Load Models
-    await loadModels(scene);
+    // await loadModels(scene);
 
     // Cubes
     const cubes = createCubes(scene);
@@ -128,6 +128,28 @@ function initializeLight(scene) {
     const pointLightHelper2 = new THREE.PointLightHelper(pointLight2, 1); // Light, size of the helper
     scene.add(pointLightHelper2); // Add helper to the scene
 }
+async function loadModel(scene, objPath, mtlPath, position, scale, rotationY = 0) {
+    const materialLoader = new MTLLoader();
+    const objLoader = new OBJLoader();
+
+    try {
+        const mtl = await new Promise((resolve, reject) => {
+            materialLoader.load(mtlPath, resolve, undefined, reject);
+        });
+        mtl.preload();
+        objLoader.setMaterials(mtl);
+        const root = await new Promise((resolve, reject) => {
+            objLoader.load(objPath, resolve, undefined, reject);
+        });
+        root.scale.set(scale.x, scale.y, scale.z);
+        root.rotation.y = rotationY;
+        root.position.set(position.x, position.y, position.z);
+        scene.add(root);
+    } catch (error) {
+        console.error('Error loading model:', error);
+    }
+}
+
 
 function setupFloor(scene) {
     const groundSize = 40;
@@ -152,100 +174,101 @@ function setupFloor(scene) {
     scene.add(groundMesh);
 }
 
-// Loads Tree model!
-async function loadModels(scene) {
-    const materialLoader = new MTLLoader();
-    const objLoader = new OBJLoader();
+// // Loads Tree model!
+// async function loadModels(scene) {
+//     const materialLoader = new MTLLoader();
+//     const objLoader = new OBJLoader();
 
-    try {
-        const mtl = await new Promise((resolve, reject) => {
-            materialLoader.load('../models/Tree/Lowpoly_tree_sample.mtl', resolve, undefined, reject);
-        });
-        mtl.preload();
+//     try {
+//         const mtl = await new Promise((resolve, reject) => {
+//             materialLoader.load('../models/Tree/Lowpoly_tree_sample.mtl', resolve, undefined, reject);
+//         });
+//         mtl.preload();
 
-        for (const material of Object.values(mtl.materials)) {
-            material.side = THREE.DoubleSide;
-            // Apply texture here
-            const textureLoader = new THREE.TextureLoader();
-            const texture = textureLoader.load('../Textures/abstract-alien-metal_albedo.png');
-            texture.encoding = THREE.sRGBEncoding;
-            material.map = texture;
-        }
+//         // for (const material of Object.values(mtl.materials)) {
+//         //     material.side = THREE.DoubleSide;
+//         //     // Apply texture here
+//         //     const textureLoader = new THREE.TextureLoader();
+//         //     const texture = textureLoader.load('../Textures/abstract-alien-metal_albedo.png');
+//         //     texture.encoding = THREE.sRGBEncoding;
+//         //     material.map = texture;
+//         // }
 
-        objLoader.setMaterials(mtl);
+//         objLoader.setMaterials(mtl);
 
-        const root = await new Promise((resolve, reject) => {
-            objLoader.load('../models/Tree/Lowpoly_tree_sample.obj', resolve, undefined, reject);
-        });
+//         const root = await new Promise((resolve, reject) => {
+//             objLoader.load('../models/Tree/Lowpoly_tree_sample.obj', resolve, undefined, reject);
+//         });
 
-        root.scale.set(0.3, 0.3, 0.3);
-        root.rotation.y = 135;
-        root.position.set(10, 0.05, 13);
-        scene.add(root);
-    } catch (error) {
-        console.error('Error loading model:', error);
-    }
+//         root.scale.set(0.3, 0.3, 0.3);
+//         root.rotation.y = 135;
+//         root.position.set(10, 0.05, 13);
+//         scene.add(root);
+//     } catch (error) {
+//         console.error('Error loading model:', error);
+//     }
 
-    // Left Lamp
-    try {
-        const mtl = await new Promise((resolve, reject) => {
-            materialLoader.load('../models/Lamp/rv_lamp_post_3.mtl', resolve, undefined, reject);
-        });
-        mtl.preload();
+//     // Left Lamp
+//     try {
+//         const mtl = await new Promise((resolve, reject) => {
+//             materialLoader.load('../models/Lamp/rv_lamp_post_3.mtl', resolve, undefined, reject);
+//         });
+//         mtl.preload();
 
-        // for (const material of Object.values(mtl.materials)) {
-        //     material.side = THREE.DoubleSide;
-        //     // Apply texture here
-        //     const textureLoader = new THREE.TextureLoader();
-        //     const texture = textureLoader.load('../Textures/abstract-alien-metal_albedo.png');
-        //     texture.encoding = THREE.sRGBEncoding;
-        //     material.map = texture;
-        // }
+//         // for (const material of Object.values(mtl.materials)) {
+//         //     material.side = THREE.DoubleSide;
+//         //     // Apply texture here
+//         //     const textureLoader = new THREE.TextureLoader();
+//         //     const texture = textureLoader.load('../Textures/abstract-alien-metal_albedo.png');
+//         //     texture.encoding = THREE.sRGBEncoding;
+//         //     material.map = texture;
+//         // }
 
-        objLoader.setMaterials(mtl);
+//         objLoader.setMaterials(mtl);
 
-        const root = await new Promise((resolve, reject) => {
-            objLoader.load('../models/Lamp/rv_lamp_post_3.obj', resolve, undefined, reject);
-        });
+//         const root = await new Promise((resolve, reject) => {
+//             objLoader.load('../models/Lamp/rv_lamp_post_3.obj', resolve, undefined, reject);
+//         });
 
-        root.scale.set(0.3, 0.3, 0.3);
-        root.rotation.y = Math.PI / 2;
-        root.position.set(-2, 0.05, 11);
-        scene.add(root);
-    } catch (error) {
-        console.error('Error loading model:', error);
-    }
+//         root.scale.set(0.3, 0.3, 0.3);
+//         root.rotation.y = Math.PI / 2;
+//         root.position.set(-2, 0.05, 11);
+//         scene.add(root);
+//     } catch (error) {
+//         console.error('Error loading model:', error);
+//     }
 
-    // Right Lamp
-    try {
-        const mtl = await new Promise((resolve, reject) => {
-            materialLoader.load('../models/Lamp/rv_lamp_post_3.mtl', resolve, undefined, reject);
-        });
-        mtl.preload();
+//     // Right Lamp
+//     try {
+//         const mtl = await new Promise((resolve, reject) => {
+//             materialLoader.load('../models/Lamp/rv_lamp_post_3.mtl', resolve, undefined, reject);
+//         });
+//         mtl.preload();
 
-        // for (const material of Object.values(mtl.materials)) {
-        //     material.side = THREE.DoubleSide;
-        //     // Apply texture here
-        //     const textureLoader = new THREE.TextureLoader();
-        //     const texture = textureLoader.load('../Textures/abstract-alien-metal_albedo.png');
-        //     texture.encoding = THREE.sRGBEncoding;
-        //     material.map = texture;
-        // }
+//         // for (const material of Object.values(mtl.materials)) {
+//         //     material.side = THREE.DoubleSide;
+//         //     // Apply texture here
+//         //     const textureLoader = new THREE.TextureLoader();
+//         //     const texture = textureLoader.load('../Textures/abstract-alien-metal_albedo.png');
+//         //     texture.encoding = THREE.sRGBEncoding;
+//         //     material.map = texture;
+//         // }
 
-        objLoader.setMaterials(mtl);
+//         objLoader.setMaterials(mtl);
 
-        const root = await new Promise((resolve, reject) => {
-            objLoader.load('../models/Lamp/rv_lamp_post_3.obj', resolve, undefined, reject);
-        });
+//         const root = await new Promise((resolve, reject) => {
+//             objLoader.load('../models/Lamp/rv_lamp_post_3.obj', resolve, undefined, reject);
+//         });
 
-        root.scale.set(0.3, 0.3, 0.3);
-        root.rotation.y = Math.PI / 2;
-        root.position.set(2, 0.05, 11);
-        scene.add(root);
-    } catch (error) {
-        console.error('Error loading model:', error);
-    }
-}
+//         root.scale.set(0.3, 0.3, 0.3);
+//         root.rotation.y = Math.PI / 2;
+//         root.position.set(2, 0.05, 11);
+//         scene.add(root);
+//     } catch (error) {
+//         console.error('Error loading model:', error);
+//     }
+// }
+
 
 
 function createCubes(scene) {
@@ -287,6 +310,23 @@ function createCubes(scene) {
     createCube(scene, -0.6, -.4, 12, 1, "gray");
     createCube(scene, 0.6, -.4, 13, 1, "gray");
 
+    // Road
+    createCube(scene, 0, -.49, 20, "road", "dark_gray");
+
+    createCube(scene, -3, -.48, 20, "divider", "white");
+    createCube(scene, -6, -.48, 20, "divider", "white");
+    createCube(scene, -9, -.48, 20, "divider", "white");
+    createCube(scene, -12, -.48, 20, "divider", "white");
+    createCube(scene, -15, -.48, 20, "divider", "white");
+    createCube(scene, -18, -.48, 20, "divider", "white");
+
+    createCube(scene, 0, -.48, 20, "divider", "white");
+    createCube(scene, 3, -.48, 20, "divider", "white");
+    createCube(scene, 6, -.48, 20, "divider", "white");
+    createCube(scene, 9, -.48, 20, "divider", "white");
+    createCube(scene, 12, -.48, 20, "divider", "white");
+    createCube(scene, 15, -.48, 20, "divider", "white");
+    createCube(scene, 18, -.48, 20, "divider", "white");
 
     // Wall Front and Back
     createCube(scene, -9, .5, 10, 2, "brown");
@@ -328,6 +368,11 @@ function createCubes(scene) {
     // Grave
     createCube(scene, -7, -.9, -6, 7, "brown");
 
+    
+    loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: -18, y: 0.05, z: 7 }, { x: 0.3, y: 0.3, z: 0.3 }, Math.PI / 2);
+    loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: 18, y: 0.05, z: 7 }, { x: 0.3, y: 0.3, z: 0.3 }, 0);
+    loadModel(scene, '../models/Lamp/rv_lamp_post_3.obj', '../models/Lamp/rv_lamp_post_3.mtl', { x: -2, y: 0.05, z: 11 }, { x: 0.3, y: 0.3, z: 0.3 }, Math.PI / 2);
+    loadModel(scene, '../models/Lamp/rv_lamp_post_3.obj', '../models/Lamp/rv_lamp_post_3.mtl', { x: 2, y: 0.05, z: 11 }, { x: 0.3, y: 0.3, z: 0.3 }, Math.PI / 2);
 
 
     return cubes;
@@ -389,6 +434,12 @@ function createGeometry(size) {
         case 7:
             geometry  = new THREE.BoxGeometry(2, 2.0, 3);
             break;
+        case "road":
+            geometry  = new THREE.BoxGeometry(40, 1, 5);
+            break;
+        case "divider":
+            geometry  = new THREE.BoxGeometry(2, 1, .5);
+            break;
         // Add more cases for different sizes if needed
         default:
             geometry = new THREE.BoxGeometry(size, size, size);
@@ -406,6 +457,15 @@ function createMaterial(color) {
         case "brown":
             material = new THREE.MeshPhongMaterial({ color: new THREE.Color(10/255, 5/255, 0/255) });
             break;
+        case "black":
+            material = new THREE.MeshPhongMaterial({ color: new THREE.Color(0/255, 0/255, 0/255) });
+            break;
+        case "dark_gray":
+            material = new THREE.MeshPhongMaterial({ color: new THREE.Color(20/255, 20/255, 20/255) });
+            break;
+        case "white":
+            material = new THREE.MeshPhongMaterial({ color: new THREE.Color(255/255, 255/255, 255/255) });
+            break;    
         // Add more cases for different colors if needed
         default:
             material = new THREE.MeshPhongMaterial({ color: new THREE.Color(1, 1, 1) }); // Default white color
