@@ -1,0 +1,8 @@
+Model Information:
+* title:	Modified Porsche 911 Carrera 4s
+* source:	https://sketchfab.com/3d-models/modified-porsche-911-carrera-4s-9f3d4ddc3eb340b8820251dbe3e059b8
+* author:	3DMODE (https://sketchfab.com/cyken21)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works

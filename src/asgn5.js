@@ -2,6 +2,7 @@ import * as THREE from '../lib/three.module.js';
 import {OrbitControls} from '../lib/OrbitControls.js';
 import {OBJLoader} from '../lib/OBJLoader.js';
 import {MTLLoader} from '../lib/MTLLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 async function main() {
     // Setup
@@ -36,7 +37,19 @@ async function main() {
 
     // Load Models
     // await loadModels(scene);
-
+    await loadGLTFModel(scene, '../models/Subaru/scene.gltf', { x: -10, y: 0.05, z: 21.3 }, { x: 1, y: 1, z: 1 }, Math.PI/2);
+    await loadGLTFModel(scene, '../models/Porsche/scene.gltf', { x: 10, y: .75, z: 18.6 }, { x: 1.2, y: 1.2, z: 1.2 }, 4.7);
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: -6.7, y: -1.8, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: -9.7, y: -1.8, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: -12.7, y: -1.8, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: 7.3, y: -1.8, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: 10.3, y: -1.8, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: 13.3, y: -1.8, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
+    //await loadGLTFModel(scene, '../models/sauron/scene.gltf', { x: -4, y: -1.4, z: -5.5 }, { x: .1, y: .1, z: .1 }, );
+    await loadGLTFModel(scene, '../models/necromancer/scene.gltf', { x: -.1, y: 0, z: -2.5 }, { x: 2, y: 2, z: 2 }, 3.1);
+    await loadGLTFModel(scene, '../models/pumpkin/scene.gltf', { x: -2, y: 0, z: -2.5 }, { x: .005, y: .005, z: .005 }, );
+    await loadGLTFModel(scene, '../models/pumpkin/scene.gltf', { x: 2, y: 0, z: -2.5 }, { x: .005, y: .005, z: .005 }, );
+    await loadGLTFModel(scene, '../models/grave/scene.gltf', { x: 12, y: -3.3, z: 2 }, { x: .3, y: .3, z: .3 }, Math.PI/2);
     // Cubes
     const cubes = createCubes(scene);
 
@@ -92,10 +105,21 @@ function initializeCamera(canvas) {
     return camera;
 }
 
+function createSpotlight(scene, x, z) {
+    const spotlight = new THREE.SpotLight(0xffffff); // White light
+    spotlight.distance = 100;
+    spotlight.angle = Math.PI / 24;
+    spotlight.intensity = 1;
+    spotlight.position.set(x, 10, z); // Always 10 units above the ground
+    spotlight.target.position.set(x, 0, z); // Point towards the ground
+    scene.add(spotlight);
+    scene.add(spotlight.target);
+}
+
 function initializeLight(scene) {
     const red = 0xf23030;
     const color = 0xFFEAD0;
-    const intensity = .4;
+    const intensity = .2;
 
     const spotlight = new THREE.SpotLight(0xff0000); // Red light
     spotlight.distance = 100;
@@ -114,20 +138,21 @@ function initializeLight(scene) {
     hemiLight.position.set(0, 10, 0);
     scene.add(hemiLight);
 
-    // Left Lamp Light
-    const pointLight = new THREE.PointLight(0xebd234, 1); // color, intensity
+    //Left Lamp Light
+    const pointLight = new THREE.PointLight(0xebd234, .3); // color, intensity
     pointLight.position.set(-2, 5.5, 11); // Set position of the light
     scene.add(pointLight); // Add the light to the scene
     const pointLightHelper = new THREE.PointLightHelper(pointLight, 1); // Light, size of the helper
     scene.add(pointLightHelper); // Add helper to the scene
 
     // Right Lamp Light
-    const pointLight2 = new THREE.PointLight(0xebd234, 1); // color, intensity
+    const pointLight2 = new THREE.PointLight(0xebd234, .3); // color, intensity
     pointLight2.position.set(2, 5.5, 11); // Set position of the light
     scene.add(pointLight2); // Add the light to the scene
     const pointLightHelper2 = new THREE.PointLightHelper(pointLight2, 1); // Light, size of the helper
     scene.add(pointLightHelper2); // Add helper to the scene
 }
+
 async function loadModel(scene, objPath, mtlPath, position, scale, rotationY = 0) {
     const materialLoader = new MTLLoader();
     const objLoader = new OBJLoader();
@@ -141,6 +166,23 @@ async function loadModel(scene, objPath, mtlPath, position, scale, rotationY = 0
         const root = await new Promise((resolve, reject) => {
             objLoader.load(objPath, resolve, undefined, reject);
         });
+        root.scale.set(scale.x, scale.y, scale.z);
+        root.rotation.y = rotationY;
+        root.position.set(position.x, position.y, position.z);
+        scene.add(root);
+    } catch (error) {
+        console.error('Error loading model:', error);
+    }
+}
+
+async function loadGLTFModel(scene, gltfPath, position, scale, rotationY = 0) {
+    const loader = new GLTFLoader();
+
+    try {
+        const gltf = await new Promise((resolve, reject) => {
+            loader.load(gltfPath, resolve, undefined, reject);
+        });
+        const root = gltf.scene;
         root.scale.set(scale.x, scale.y, scale.z);
         root.rotation.y = rotationY;
         root.position.set(position.x, position.y, position.z);
@@ -173,103 +215,6 @@ function setupFloor(scene) {
 
     scene.add(groundMesh);
 }
-
-// // Loads Tree model!
-// async function loadModels(scene) {
-//     const materialLoader = new MTLLoader();
-//     const objLoader = new OBJLoader();
-
-//     try {
-//         const mtl = await new Promise((resolve, reject) => {
-//             materialLoader.load('../models/Tree/Lowpoly_tree_sample.mtl', resolve, undefined, reject);
-//         });
-//         mtl.preload();
-
-//         // for (const material of Object.values(mtl.materials)) {
-//         //     material.side = THREE.DoubleSide;
-//         //     // Apply texture here
-//         //     const textureLoader = new THREE.TextureLoader();
-//         //     const texture = textureLoader.load('../Textures/abstract-alien-metal_albedo.png');
-//         //     texture.encoding = THREE.sRGBEncoding;
-//         //     material.map = texture;
-//         // }
-
-//         objLoader.setMaterials(mtl);
-
-//         const root = await new Promise((resolve, reject) => {
-//             objLoader.load('../models/Tree/Lowpoly_tree_sample.obj', resolve, undefined, reject);
-//         });
-
-//         root.scale.set(0.3, 0.3, 0.3);
-//         root.rotation.y = 135;
-//         root.position.set(10, 0.05, 13);
-//         scene.add(root);
-//     } catch (error) {
-//         console.error('Error loading model:', error);
-//     }
-
-//     // Left Lamp
-//     try {
-//         const mtl = await new Promise((resolve, reject) => {
-//             materialLoader.load('../models/Lamp/rv_lamp_post_3.mtl', resolve, undefined, reject);
-//         });
-//         mtl.preload();
-
-//         // for (const material of Object.values(mtl.materials)) {
-//         //     material.side = THREE.DoubleSide;
-//         //     // Apply texture here
-//         //     const textureLoader = new THREE.TextureLoader();
-//         //     const texture = textureLoader.load('../Textures/abstract-alien-metal_albedo.png');
-//         //     texture.encoding = THREE.sRGBEncoding;
-//         //     material.map = texture;
-//         // }
-
-//         objLoader.setMaterials(mtl);
-
-//         const root = await new Promise((resolve, reject) => {
-//             objLoader.load('../models/Lamp/rv_lamp_post_3.obj', resolve, undefined, reject);
-//         });
-
-//         root.scale.set(0.3, 0.3, 0.3);
-//         root.rotation.y = Math.PI / 2;
-//         root.position.set(-2, 0.05, 11);
-//         scene.add(root);
-//     } catch (error) {
-//         console.error('Error loading model:', error);
-//     }
-
-//     // Right Lamp
-//     try {
-//         const mtl = await new Promise((resolve, reject) => {
-//             materialLoader.load('../models/Lamp/rv_lamp_post_3.mtl', resolve, undefined, reject);
-//         });
-//         mtl.preload();
-
-//         // for (const material of Object.values(mtl.materials)) {
-//         //     material.side = THREE.DoubleSide;
-//         //     // Apply texture here
-//         //     const textureLoader = new THREE.TextureLoader();
-//         //     const texture = textureLoader.load('../Textures/abstract-alien-metal_albedo.png');
-//         //     texture.encoding = THREE.sRGBEncoding;
-//         //     material.map = texture;
-//         // }
-
-//         objLoader.setMaterials(mtl);
-
-//         const root = await new Promise((resolve, reject) => {
-//             objLoader.load('../models/Lamp/rv_lamp_post_3.obj', resolve, undefined, reject);
-//         });
-
-//         root.scale.set(0.3, 0.3, 0.3);
-//         root.rotation.y = Math.PI / 2;
-//         root.position.set(2, 0.05, 11);
-//         scene.add(root);
-//     } catch (error) {
-//         console.error('Error loading model:', error);
-//     }
-// }
-
-
 
 function createCubes(scene) {
     const cubes = [];
@@ -368,12 +313,37 @@ function createCubes(scene) {
     // Grave
     createCube(scene, -7, -.9, -6, 7, "brown");
 
-    
+    // Grave Head Stone Cylinder Part
+    createCube(scene, 13, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
+    // Grave Head Stone Cube Part
+    createCube(scene, 13, 1, -8, 6, "gray");
+    // Grave
+    createCube(scene, 13, -.9, -6, 7, "brown");
+
+    // Grave Head Stone Cylinder Part
+    createCube(scene, 10, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
+    // Grave Head Stone Cube Part
+    createCube(scene, 10, 1, -8, 6, "gray");
+    // Grave
+    createCube(scene, 10, -.9, -6, 7, "brown");
+
+    // Grave Head Stone Cylinder Part
+    createCube(scene, 7, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
+    // Grave Head Stone Cube Part
+    createCube(scene, 7, 1, -8, 6, "gray");
+    // Grave
+    createCube(scene, 7, -.9, -6, 7, "brown");
+
     loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: -18, y: 0.05, z: 7 }, { x: 0.3, y: 0.3, z: 0.3 }, Math.PI / 2);
     loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: 18, y: 0.05, z: 7 }, { x: 0.3, y: 0.3, z: 0.3 }, 0);
     loadModel(scene, '../models/Lamp/rv_lamp_post_3.obj', '../models/Lamp/rv_lamp_post_3.mtl', { x: -2, y: 0.05, z: 11 }, { x: 0.3, y: 0.3, z: 0.3 }, Math.PI / 2);
     loadModel(scene, '../models/Lamp/rv_lamp_post_3.obj', '../models/Lamp/rv_lamp_post_3.mtl', { x: 2, y: 0.05, z: 11 }, { x: 0.3, y: 0.3, z: 0.3 }, Math.PI / 2);
-
+    createSpotlight(scene, -7, -6); 
+    createSpotlight(scene, -10, -6); 
+    createSpotlight(scene, -13, -6); 
+    createSpotlight(scene, 7, -6); 
+    createSpotlight(scene, 10, -6); 
+    createSpotlight(scene, 13, -6); 
 
     return cubes;
 }
