@@ -3,6 +3,13 @@ import {OrbitControls} from '../lib/OrbitControls.js';
 import {OBJLoader} from '../lib/OBJLoader.js';
 import {MTLLoader} from '../lib/MTLLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { TWEEN } from 'https://unpkg.com/three@0.139.0/examples/jsm/libs/tween.module.min.js';
+
+let zombies = [];
+let zombiesUp = false;
+
+const textBox = document.getElementById('textBox');
+textBox.textContent = "Click the icosahedron in the center to summon the horde!";
 
 async function main() {
     // Setup
@@ -35,21 +42,36 @@ async function main() {
     // Floor Setup
     setupFloor(scene);
 
+    // Raycaster and mouse for detecting clicks
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    // Event listener for mouse clicks
+    canvas.addEventListener('click', (event) => onMouseClick(event, camera, scene, raycaster, mouse), false);
     // Load Models
     // await loadModels(scene);
     await loadGLTFModel(scene, '../models/Subaru/scene.gltf', { x: -10, y: 0.05, z: 21.3 }, { x: 1, y: 1, z: 1 }, Math.PI/2);
     await loadGLTFModel(scene, '../models/Porsche/scene.gltf', { x: 10, y: .75, z: 18.6 }, { x: 1.2, y: 1.2, z: 1.2 }, 4.7);
-    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: -6.7, y: -1.8, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
-    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: -9.7, y: -1.8, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
-    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: -12.7, y: -1.8, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
-    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: 7.3, y: -1.8, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
-    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: 10.3, y: -1.8, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
-    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: 13.3, y: -1.8, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
-    //await loadGLTFModel(scene, '../models/sauron/scene.gltf', { x: -4, y: -1.4, z: -5.5 }, { x: .1, y: .1, z: .1 }, );
+
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: -6.7, y: -5, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: -9.7, y: -5, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: -12.7, y: -5, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
+
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: -6.7, y: -5, z: 1.5 }, { x: .025, y: .025, z: .025 }, );
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: -9.7, y: -5, z: 1.5 }, { x: .025, y: .025, z: .025 }, );
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: -12.7, y: -5, z: 1.5 }, { x: .025, y: .025, z: .025 }, );
+
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: 7.3, y: -5, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: 10.3, y: -5, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: 13.3, y: -5, z: -5.5 }, { x: .025, y: .025, z: .025 }, );
+
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: 7.3, y: -5, z: 1.5 }, { x: .025, y: .025, z: .025 }, );
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: 10.3, y: -5, z: 1.5 }, { x: .025, y: .025, z: .025 }, );
+    await loadGLTFModel(scene, '../models/zombie/scene.gltf', { x: 13.3, y: -5, z: 1.5 }, { x: .025, y: .025, z: .025 }, );
+
     await loadGLTFModel(scene, '../models/necromancer/scene.gltf', { x: -.1, y: 0, z: -2.5 }, { x: 2, y: 2, z: 2 }, 3.1);
     await loadGLTFModel(scene, '../models/pumpkin/scene.gltf', { x: -2, y: 0, z: -2.5 }, { x: .005, y: .005, z: .005 }, );
     await loadGLTFModel(scene, '../models/pumpkin/scene.gltf', { x: 2, y: 0, z: -2.5 }, { x: .005, y: .005, z: .005 }, );
-    await loadGLTFModel(scene, '../models/grave/scene.gltf', { x: 12, y: -3.3, z: 2 }, { x: .3, y: .3, z: .3 }, Math.PI/2);
     // Cubes
     const cubes = createCubes(scene);
 
@@ -76,10 +98,90 @@ async function main() {
         }
 
         animateCubes(time, cubes);
+        TWEEN.update();
         renderer.render(scene, camera);
         requestAnimationFrame(render);
+
+        if (zombiesUp) {
+            // Make spotlights visible
+            scene.children.forEach(child => {
+                if (child instanceof THREE.SpotLight) {
+                    child.visible = true;
+                }
+            });
+        } else {
+            // Hide spotlights
+            scene.children.forEach(child => {
+                if (child instanceof THREE.SpotLight) {
+                    child.visible = false;
+                }
+            });
+        }
     }
     requestAnimationFrame(render);
+}
+function onMouseClick(event, camera, scene, raycaster, mouse) {
+    // Calculate mouse position in normalized device coordinates (-1 to +1) for both components
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // Update the raycaster with the camera and mouse position
+    raycaster.setFromCamera(mouse, camera);
+
+    // Calculate objects intersecting the picking ray
+    const intersects = raycaster.intersectObjects(scene.children);
+
+    for (let i = 0; i < intersects.length; i++) {
+        if (intersects[i].object.geometry instanceof THREE.IcosahedronGeometry) {
+            if (zombiesUp) {
+                moveZombiesDown();
+                zombiesUp = false;
+            } else {
+                moveZombiesUp();
+                zombiesUp = true;
+            }
+            break;
+        }
+    }
+}
+
+function moveZombiesUp() {
+    zombies.forEach(zombie => {
+        // Define the initial position of the zombie
+        const startPosition = { y: zombie.position.y };
+        
+        // Define the target position (3 units above the initial position)
+        const targetPosition = { y: zombie.position.y + 3 };
+        
+        // Define the duration of the animation (in seconds)
+        const duration = 1;
+        
+        // Use Tween.js to animate the zombie's position
+        new TWEEN.Tween(startPosition)
+            .to(targetPosition, duration * 1000) // Convert duration to milliseconds
+            .easing(TWEEN.Easing.Quadratic.InOut) // Use quadratic easing for smooth motion
+            .onUpdate(() => {
+                // Update the zombie's position during the animation
+                zombie.position.y = startPosition.y;
+            })
+            .start(); // Start the animation
+    });
+}
+
+function moveZombiesDown() {
+    zombies.forEach(zombie => {
+        const startPosition = { y: zombie.position.y };
+        const targetPosition = { y: zombie.position.y - 3 }; // Move back down to y = 0
+        const duration = 1;
+
+        new TWEEN.Tween(startPosition)
+            .to(targetPosition, duration * 1000)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .onUpdate(() => {
+                zombie.position.y = startPosition.y;
+            })
+            .start();
+    });
 }
 
 function initializeRenderer(canvas) {
@@ -130,8 +232,8 @@ function initializeLight(scene) {
     spotlight.target.position.set(0, 0, 0); // Point towards the origin
     scene.add(spotlight);
     scene.add(spotlight.target);
-    const spotlightHelper = new THREE.SpotLightHelper(spotlight);
-    scene.add(spotlightHelper);
+    // const spotlightHelper = new THREE.SpotLightHelper(spotlight);
+    // scene.add(spotlightHelper);
 
     //Create a HemisphereLight
     const hemiLight = new THREE.HemisphereLight(color, 0x404040, intensity);
@@ -142,15 +244,15 @@ function initializeLight(scene) {
     const pointLight = new THREE.PointLight(0xebd234, .3); // color, intensity
     pointLight.position.set(-2, 5.5, 11); // Set position of the light
     scene.add(pointLight); // Add the light to the scene
-    const pointLightHelper = new THREE.PointLightHelper(pointLight, 1); // Light, size of the helper
-    scene.add(pointLightHelper); // Add helper to the scene
+    // const pointLightHelper = new THREE.PointLightHelper(pointLight, 1); // Light, size of the helper
+    // scene.add(pointLightHelper); // Add helper to the scene
 
     // Right Lamp Light
     const pointLight2 = new THREE.PointLight(0xebd234, .3); // color, intensity
     pointLight2.position.set(2, 5.5, 11); // Set position of the light
     scene.add(pointLight2); // Add the light to the scene
-    const pointLightHelper2 = new THREE.PointLightHelper(pointLight2, 1); // Light, size of the helper
-    scene.add(pointLightHelper2); // Add helper to the scene
+    // const pointLightHelper2 = new THREE.PointLightHelper(pointLight2, 1); // Light, size of the helper
+    // scene.add(pointLightHelper2); // Add helper to the scene
 }
 
 async function loadModel(scene, objPath, mtlPath, position, scale, rotationY = 0) {
@@ -187,6 +289,9 @@ async function loadGLTFModel(scene, gltfPath, position, scale, rotationY = 0) {
         root.rotation.y = rotationY;
         root.position.set(position.x, position.y, position.z);
         scene.add(root);
+        if (gltfPath.includes('zombie')) {
+            zombies.push(root); // Add the zombie to the zombies array
+        }
     } catch (error) {
         console.error('Error loading model:', error);
     }
@@ -216,12 +321,19 @@ function setupFloor(scene) {
     scene.add(groundMesh);
 }
 
+
 function createCubes(scene) {
     const cubes = [];
     const cubeWidth = 6;
     const cubeHeight = 6;
     const cubeDepth = 6;
 
+    const geometry = new THREE.IcosahedronGeometry(1);
+    const material = new THREE.MeshPhongMaterial({ color: new THREE.Color(255/255, 55/255, 0/255) });
+    const icosahedronMesh = new THREE.Mesh(geometry, material);
+    icosahedronMesh.position.set(0, 0, 0);
+    cubes.push(icosahedronMesh);
+    scene.add(icosahedronMesh);
     // LOG 1
     createLog(scene, 1, -.9, 0);
 
@@ -233,14 +345,6 @@ function createCubes(scene) {
 
     // LOG 4
     createLog(scene, 0, -.9, -1, Math.PI / 2);
-
-    // FIRE MODEL
-    const geometry = new THREE.IcosahedronGeometry(1);
-    const material = new THREE.MeshPhongMaterial({ color: new THREE.Color(255/255, 55/255, 0/255) });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 0, 0);
-    cubes.push(mesh);
-    scene.add(mesh);
 
     // Path to fire
     createCube(scene, .6, -.4, 5, 1, "gray");
@@ -254,6 +358,10 @@ function createCubes(scene) {
     createCube(scene, 0.6, -.4, 11, 1, "gray");
     createCube(scene, -0.6, -.4, 12, 1, "gray");
     createCube(scene, 0.6, -.4, 13, 1, "gray");
+
+    createCube(scene, -0.6, -.4, 14, 1, "gray");
+    createCube(scene, 0.6, -.4, 15, 1, "gray");
+    createCube(scene, -0.6, -.4, 16, 1, "gray");
 
     // Road
     createCube(scene, 0, -.49, 20, "road", "dark_gray");
@@ -292,58 +400,133 @@ function createCubes(scene) {
     createCube(scene, 2, .5, -10, 4, "brown");
     createCube(scene, -2, .5, -10, 4, "brown");
 
-    // Grave Head Stone Cylinder Part
-    createCube(scene, -13, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
-    // Grave Head Stone Cube Part
-    createCube(scene, -13, 1, -8, 6, "gray");
-    // Grave
-    createCube(scene, -13, -.9, -6, 7, "brown");
+    // LEFT 3 GRAVES
+    {
+        // Grave Head Stone Cylinder Part
+        createCube(scene, -13, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
+        // Grave Head Stone Cube Part
+        createCube(scene, -13, 1, -8, 6, "gray");
+        // Grave
+        createCube(scene, -13, -.9, -6, 7, "brown");
+        createSpotlight(scene, -7, -6); 
 
-    // Grave Head Stone Cylinder Part
-    createCube(scene, -10, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
-    // Grave Head Stone Cube Part
-    createCube(scene, -10, 1, -8, 6, "gray");
-    // Grave
-    createCube(scene, -10, -.9, -6, 7, "brown");
 
-    // Grave Head Stone Cylinder Part
-    createCube(scene, -7, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
-    // Grave Head Stone Cube Part
-    createCube(scene, -7, 1, -8, 6, "gray");
-    // Grave
-    createCube(scene, -7, -.9, -6, 7, "brown");
+        // Grave Head Stone Cylinder Part
+        createCube(scene, -10, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
+        // Grave Head Stone Cube Part
+        createCube(scene, -10, 1, -8, 6, "gray");
+        // Grave
+        createCube(scene, -10, -.9, -6, 7, "brown");
+        createSpotlight(scene, -10, -6); 
 
-    // Grave Head Stone Cylinder Part
-    createCube(scene, 13, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
-    // Grave Head Stone Cube Part
-    createCube(scene, 13, 1, -8, 6, "gray");
-    // Grave
-    createCube(scene, 13, -.9, -6, 7, "brown");
+        // Grave Head Stone Cylinder Part
+        createCube(scene, -7, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
+        // Grave Head Stone Cube Part
+        createCube(scene, -7, 1, -8, 6, "gray");
+        // Grave
+        createCube(scene, -7, -.9, -6, 7, "brown");
+        createSpotlight(scene, -13, -6); 
+    }
 
-    // Grave Head Stone Cylinder Part
-    createCube(scene, 10, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
-    // Grave Head Stone Cube Part
-    createCube(scene, 10, 1, -8, 6, "gray");
-    // Grave
-    createCube(scene, 10, -.9, -6, 7, "brown");
+    // LEFT 3 MIDDLE GRAVES
+    {
+        // Grave Head Stone Cylinder Part
+        createCube(scene, -13, 1.75, -1, 5, "gray", Math.PI / 2, 0, 0);
+        // Grave Head Stone Cube Part
+        createCube(scene, -13, 1, -1, 6, "gray");
+        // Grave
+        createCube(scene, -13, -.9, 1, 7, "brown");
+        createSpotlight(scene, -7, 1); 
 
-    // Grave Head Stone Cylinder Part
-    createCube(scene, 7, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
-    // Grave Head Stone Cube Part
-    createCube(scene, 7, 1, -8, 6, "gray");
-    // Grave
-    createCube(scene, 7, -.9, -6, 7, "brown");
+        // Grave Head Stone Cylinder Part
+        createCube(scene, -10, 1.75, -1, 5, "gray", Math.PI / 2, 0, 0);
+        // Grave Head Stone Cube Part
+        createCube(scene, -10, 1, -1, 6, "gray");
+        // Grave
+        createCube(scene, -10, -.9, 1, 7, "brown");
+        createSpotlight(scene, -10, 1); 
+
+        // Grave Head Stone Cylinder Part
+        createCube(scene, -7, 1.75, -1, 5, "gray", Math.PI / 2, 0, 0);
+        // Grave Head Stone Cube Part
+        createCube(scene, -7, 1, -1, 6, "gray");
+        // Grave
+        createCube(scene, -7, -.9, 1, 7, "brown");
+        createSpotlight(scene, -13, 1); 
+    }
+
+    // RIGHT 3 GRAVES
+    {
+        // Grave Head Stone Cylinder Part
+        createCube(scene, 13, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
+        // Grave Head Stone Cube Part
+        createCube(scene, 13, 1, -8, 6, "gray");
+        // Grave
+        createCube(scene, 13, -.9, -6, 7, "brown");
+        createSpotlight(scene, 7, -6); 
+
+        // Grave Head Stone Cylinder Part
+        createCube(scene, 10, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
+        // Grave Head Stone Cube Part
+        createCube(scene, 10, 1, -8, 6, "gray");
+        // Grave
+        createCube(scene, 10, -.9, -6, 7, "brown");
+        createSpotlight(scene, 10, -6);
+
+        // Grave Head Stone Cylinder Part
+        createCube(scene, 7, 1.75, -8, 5, "gray", Math.PI / 2, 0, 0);
+        // Grave Head Stone Cube Part
+        createCube(scene, 7, 1, -8, 6, "gray");
+        // Grave
+        createCube(scene, 7, -.9, -6, 7, "brown");
+        createSpotlight(scene, 13, -6); 
+    }
+
+    // RIGHT 3 MIDDLE GRAVES
+    {
+        // Grave Head Stone Cylinder Part
+        createCube(scene, 13, 1.75, -1, 5, "gray", Math.PI / 2, 0, 0);
+        // Grave Head Stone Cube Part
+        createCube(scene, 13, 1, -1, 6, "gray");
+        // Grave
+        createCube(scene, 13, -.9, 1, 7, "brown");
+        createSpotlight(scene, 7, 1); 
+
+        // Grave Head Stone Cylinder Part
+        createCube(scene, 10, 1.75, -1, 5, "gray", Math.PI / 2, 0, 0);
+        // Grave Head Stone Cube Part
+        createCube(scene, 10, 1, -1, 6, "gray");
+        // Grave
+        createCube(scene, 10, -.9, 1, 7, "brown");
+        createSpotlight(scene, 10, 1);
+        
+        // Grave Head Stone Cylinder Part
+        createCube(scene, 7, 1.75, -1, 5, "gray", Math.PI / 2, 0, 0);
+        // Grave Head Stone Cube Part
+        createCube(scene, 7, 1, -1, 6, "gray");
+        // Grave
+        createCube(scene, 7, -.9, 1, 7, "brown");
+        createSpotlight(scene, 13, 1); 
+    }
+
 
     loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: -18, y: 0.05, z: 7 }, { x: 0.3, y: 0.3, z: 0.3 }, Math.PI / 2);
+    loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: -18, y: 0.05, z: 2 }, { x: 0.3, y: 0.3, z: 0.3 }, Math.PI / 2);
+    loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: -18, y: 0.05, z: -3 }, { x: 0.3, y: 0.3, z: 0.3 }, Math.PI / 2);
+    loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: -18, y: 0.05, z: -7 }, { x: 0.3, y: 0.3, z: 0.3 }, Math.PI / 2);
+    loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: -18, y: 0.05, z: -12 }, { x: 0.3, y: 0.3, z: 0.3 }, Math.PI / 2);
+
     loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: 18, y: 0.05, z: 7 }, { x: 0.3, y: 0.3, z: 0.3 }, 0);
+    loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: 18, y: 0.05, z: 2 }, { x: 0.3, y: 0.3, z: 0.3 }, 0);
+    loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: 18, y: 0.05, z: -3 }, { x: 0.3, y: 0.3, z: 0.3 }, 0);
+    loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: 18, y: 0.05, z: -7 }, { x: 0.3, y: 0.3, z: 0.3 }, 0);
+    loadModel(scene, '../models/Tree/Lowpoly_tree_sample.obj', '../models/Tree/Lowpoly_tree_sample.mtl', { x: 18, y: 0.05, z: -12 }, { x: 0.3, y: 0.3, z: 0.3 }, 0);
     loadModel(scene, '../models/Lamp/rv_lamp_post_3.obj', '../models/Lamp/rv_lamp_post_3.mtl', { x: -2, y: 0.05, z: 11 }, { x: 0.3, y: 0.3, z: 0.3 }, Math.PI / 2);
     loadModel(scene, '../models/Lamp/rv_lamp_post_3.obj', '../models/Lamp/rv_lamp_post_3.mtl', { x: 2, y: 0.05, z: 11 }, { x: 0.3, y: 0.3, z: 0.3 }, Math.PI / 2);
-    createSpotlight(scene, -7, -6); 
-    createSpotlight(scene, -10, -6); 
-    createSpotlight(scene, -13, -6); 
-    createSpotlight(scene, 7, -6); 
-    createSpotlight(scene, 10, -6); 
-    createSpotlight(scene, 13, -6); 
+
+
+ 
+
 
     return cubes;
 }
